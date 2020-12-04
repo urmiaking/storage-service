@@ -10,7 +10,7 @@ namespace StorageService.Services
 {
     public interface IFileRepository
     {
-        Task<FileState> UploadFileAsync(IFormFile file, User user);
+        Task<FileState> UploadFileAsync(IFormFile file, User user, bool isPrivate);
     }
 
     public enum FileState

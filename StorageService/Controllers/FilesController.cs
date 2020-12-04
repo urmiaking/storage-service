@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -23,15 +24,19 @@ namespace StorageService.Controllers
 
         [HttpPost(nameof(Upload))]
         [Authorize]
-        public async Task<IActionResult> Upload(IFormFile file)
+        public async Task<IActionResult> Upload(IFormFile file, bool isPrivate)
         {
             var user = await _userManager.FindByNameAsync(User.Identity?.Name);
 
             if (user is null)
                 return Unauthorized();
 
-            await _fileRepository.UploadFileAsync(file, user);
-            return Ok();
+            var result = await _fileRepository.UploadFileAsync(file, user, isPrivate);
+
+            if (result == FileState.UserVolumeLimit)
+                return new JsonResult(new {message = "Error"}, HttpStatusCode.BadRequest);
+            
+            return new JsonResult(new {message = "File Uploaded Sucessfully!"});
         }
     }
 }

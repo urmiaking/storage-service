@@ -26,7 +26,7 @@ namespace StorageService.Services
             _userManager = userManager;
         }
 
-        public async Task<FileState> UploadFileAsync(IFormFile file, User user)
+        public async Task<FileState> UploadFileAsync(IFormFile file, User user, bool isPrivate)
         {
             if (file is null)
                 return FileState.Failure;
@@ -43,7 +43,7 @@ namespace StorageService.Services
                 UserId = user.Id,
                 FileName = file.FileName,
                 Size = Convert.ToInt32(fileSizeInMb),
-                IsPublic = false,
+                IsPublic = isPrivate,
                 Path = Path.Combine(user.UserName, file.FileName)
             };
 
@@ -52,7 +52,7 @@ namespace StorageService.Services
                 Directory.CreateDirectory(fileSavePath);
             }
 
-            await using (var fs = System.IO.File.Create(fileObject.Path))
+            await using (var fs = System.IO.File.Create(fileSavePath + "\\" + file.FileName))
             {
                 await file.CopyToAsync(fs);
                 await fs.FlushAsync();
@@ -62,7 +62,7 @@ namespace StorageService.Services
             await _context.SaveChangesAsync();
 
             user.StorageSize -= Convert.ToInt32(fileSizeInMb);
-            var result = await _userManager.UpdateAsync(user);
+            await _userManager.UpdateAsync(user);
 
             return FileState.Success;
         }
