@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Http;
@@ -65,6 +66,23 @@ namespace StorageService.Controllers
             var contentType = _fileRepository.GetFromFile(file.FileName);
 
             return File(await System.IO.File.ReadAllBytesAsync(path), contentType, file.FileName, true);
+        }
+
+        [HttpGet(nameof(List))]
+        public async Task<IActionResult> List()
+        {
+            var filesJson = new Dictionary<string, string>();
+
+            var i = 0;
+            var files = await _fileRepository.GetDownloadableFilesAsync();
+            foreach (var file in files)
+            {
+                var fileName = $"file {i}";
+                filesJson.Add(fileName, $"{HttpContext.Request.Scheme}://{Request.Host}/api/Files/Download?filePath={file.Path}");
+                i++;
+            }
+
+            return new JsonResult(filesJson);
         }
     }
 }

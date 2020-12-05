@@ -648,6 +648,8 @@ namespace StorageService.Services
             return GetFromExtension(Path.GetExtension(fileName).Remove(0, 1));
         }
 
+        public async Task<List<File>> GetDownloadableFilesAsync() => await _context.Files.Where(a => a.IsPublic).ToListAsync();
+
         private string GetFromExtension(string ext) =>
             _mimeTypesDictionary.ContainsKey(ext) ? _mimeTypesDictionary[ext] : "unknown/unknown";
 

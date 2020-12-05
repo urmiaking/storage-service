@@ -17,6 +17,7 @@ namespace StorageService.Services
         string GetFilePath(string relativePath);
 
         string GetFromFile(string fileName);
+        Task<List<File>> GetDownloadableFilesAsync();
     }
 
     public enum FileState
