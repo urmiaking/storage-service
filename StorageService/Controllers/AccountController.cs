@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using StorageService.DTOs;
 using StorageService.Models;
 using StorageService.Services;
@@ -60,6 +65,37 @@ namespace StorageService.Controllers
                 return Unauthorized();
 
             return NotFound();
+        }
+
+        [HttpGet(nameof(StorageSize))]
+        [Authorize]
+        public async Task<IActionResult> StorageSize()
+        {
+            var user = await _userManager.FindByNameAsync(User.Identity?.Name);
+            return new JsonResult(new { storageSize = user.StorageSize});
+        }
+
+        [HttpGet(nameof(MyFiles))]
+        [Authorize]
+        public async Task<IActionResult> MyFiles()
+        {
+            var user = await _userManager.Users.Include(a => a.Files)
+                .FirstOrDefaultAsync(a => a.UserName.Equals(User.Identity.Name));
+
+            if (user.Files is null)
+                return new JsonResult(new { message = "You have no files!" });
+
+            var files = new Dictionary<string, string>();
+
+            var i = 0;
+            foreach (var file in user.Files)
+            {
+                var fileName = $"file {i}";
+                files.Add(fileName, $"{HttpContext.Request.Scheme}://{Request.Host}/api/Files/Download?filePath={file.Path}");
+                i++;
+            }
+
+            return new JsonResult(files);
         }
     }
 }
