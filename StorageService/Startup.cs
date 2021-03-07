@@ -39,7 +39,7 @@ namespace StorageService
             services.AddControllers().AddNewtonsoftJson();
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlServer(Configuration.GetConnectionString("SqlServer"));
+                options.UseNpgsql(Configuration.GetConnectionString("Postgresql"));
             });
             services.AddIdentity<User, IdentityRole<int>>(identityOptions =>
             {
